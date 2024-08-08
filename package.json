@@ -1,0 +1,16 @@
+{
+  "name": "nodejs-express-validator-demo",
+  "version": "1.0.0",
+  "description": "A Node.js application to showcase the express-validator package",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Antonello Zanini",
+  "license": "ISC",
+  "dependencies": {
+    "express": "4.18.3",
+    "express-validator": "7.0.1"
+  }
+}
