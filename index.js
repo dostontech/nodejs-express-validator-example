@@ -1,8 +1,6 @@
 const express = require("express")
 const {
-  param,
-  query,
-  body,
+  checkSchema,
   matchedData,
   validationResult,
 } = require("express-validator")
@@ -26,29 +24,43 @@ const users = [
 ]
 
 // define three sample validated endpoints
-app.get("/api/v1/users/:userId", param("userId").isInt(), (req, res) => {
-  // extract the data validation result
-  const result = validationResult(req)
-  if (result.isEmpty()) {
-    const userId = req.params.userId
-    // find a user by id
-    const user = users.find((user) => user.id == userId)
+app.get(
+  "/api/v1/users/:userId",
+  checkSchema(
+    {
+      userId: { isInt: true },
+    },
+    ["params"]
+  ),
+  (req, res) => {
+    // extract the data validation result
+    const result = validationResult(req)
+    if (result.isEmpty()) {
+      const userId = req.params.userId
+      // find a user by id
+      const user = users.find((user) => user.id == userId)
 
-    if (!user) {
-      res.status(404).send("User not found!")
+      if (!user) {
+        res.status(404).send("User not found!")
+      } else {
+        res.send({
+          user: user,
+        })
+      }
     } else {
-      res.send({
-        user: user,
-      })
+      res.status(400).send({ errors: result.array() })
     }
-  } else {
-    res.status(400).send({ errors: result.array() })
   }
-})
+)
 
 app.get(
   "/api/v1/users",
-  query("search").optional().trim().notEmpty(),
+  checkSchema(
+    {
+      search: { optional: true, trim: true, notEmpty: true },
+    },
+    ["query"]
+  ),
   (req, res) => {
     // extract the data validation result
     const result = validationResult(req)
@@ -77,14 +89,27 @@ app.get(
 
 app.post(
   "/api/v1/users",
-  body("fullName").trim().notEmpty(),
-  body("email").isEmail().withMessage("Not a valid e-mail address"),
-  body("age").isInt({ min: 18 }),
+  checkSchema(
+    {
+      fullName: {
+        trim: true,
+        notEmpty: true,
+      },
+      email: {
+        errorMessage: "Not a valid e-mail address",
+        isEmail: true,
+      },
+      age: {
+        isInt: { options: { min: 18 } },
+      },
+    },
+    ["body"]
+  ),
   (req, res) => {
     // extract the data validation result
     const result = validationResult(req)
     if (result.isEmpty()) {
-      // read the matched body data from "req"
+      // read the body data from the matched data
       const newUser = matchedData(req)
       const maxId = users.reduce(
         (max, user) => (user.id > max ? user.id : max),
